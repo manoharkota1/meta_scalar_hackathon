@@ -1,3 +1,12 @@
+---
+title: Meta Scalar Hackathon OpenEnv
+emoji: robot
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 8000
+---
+
 # Code Review Triage OpenEnv
 
 Production-grade OpenEnv environment that simulates a developer workflow for pull request review and bug triaging under constraints.
