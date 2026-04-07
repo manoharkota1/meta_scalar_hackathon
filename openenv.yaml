@@ -1,0 +1,14 @@
+spec_version: 1
+name: code_review_triage_env
+description: Production-grade code review and bug triage workflow environment for RL agents.
+version: 1.0.0
+entrypoint: server.app:app
+tags:
+  - openenv
+  - code-review
+  - bug-triage
+
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000

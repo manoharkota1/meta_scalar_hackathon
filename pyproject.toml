@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "code-review-triage-openenv"
+version = "1.0.0"
+description = "Production-grade OpenEnv environment for code review and bug triage"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.0",
+  "pydantic>=2.7.0",
+  "openai>=1.40.0",
+  "openenv-core>=0.2.0",
+  "websockets>=13.0",
+]
+
+[project.scripts]
+server = "server.app:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["env*", "server*"]
