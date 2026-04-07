@@ -1,6 +1,6 @@
 ---
 title: Meta Scalar Hackathon OpenEnv
-emoji: robot
+emoji: "🤖"
 colorFrom: blue
 colorTo: green
 sdk: docker
