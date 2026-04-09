@@ -1,12 +1,13 @@
 spec_version: 1
-name: code_review_triage_env
-description: Production-grade code review and bug triage workflow environment for RL agents.
+name: autonomous_traffic_control_env
+description: Multi-agent environment where AI systems manage a 4-way intersection with emergency vehicle prioritization.
 version: 1.0.0
 entrypoint: server.app:app
 tags:
   - openenv
-  - code-review
-  - bug-triage
+  - traffic-control
+  - multi-agent
+  - emergency-priority
 
 type: space
 runtime: fastapi

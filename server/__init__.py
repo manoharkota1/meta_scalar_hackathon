@@ -1,1 +1,1 @@
-"""Server package for the code review triage OpenEnv."""
+"""Server package for the autonomous traffic control OpenEnv."""

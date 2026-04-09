@@ -1,8 +1,8 @@
-from .environment import CodeReviewTriageEnvironment
+from .environment import AutonomousTrafficControlEnvironment
 from .models import ReviewAction, ReviewObservation, ReviewState
 
 __all__ = [
-    "CodeReviewTriageEnvironment",
+    "AutonomousTrafficControlEnvironment",
     "ReviewAction",
     "ReviewObservation",
     "ReviewState",

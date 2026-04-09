@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
-from env.environment import CodeReviewTriageEnvironment
+from env.environment import AutonomousTrafficControlEnvironment
 from env.models import ReviewAction, ReviewObservation, ReviewState
 
 
@@ -31,17 +31,20 @@ def _to_step_payload(observation: ReviewObservation) -> Dict[str, Any]:
 
 def _build_app() -> FastAPI:
     app = FastAPI(
-        title="Code Review Triage OpenEnv",
+        title="Autonomous Traffic Control OpenEnv",
         version="1.0.0",
-        description="Real-world code review and bug triage workflow environment.",
+        description=(
+            "Multi-agent environment where AI systems manage a 4-way intersection "
+            "with emergency vehicle prioritization."
+        ),
     )
 
-    http_env = CodeReviewTriageEnvironment()
+    http_env = AutonomousTrafficControlEnvironment()
 
     @app.get("/")
     async def root() -> Dict[str, Any]:
         return {
-            "name": "code_review_triage_env",
+            "name": "autonomous_traffic_control_env",
             "status": "running",
             "docs": "/docs",
             "health": "/health",
@@ -80,8 +83,11 @@ def _build_app() -> FastAPI:
     @app.get("/metadata")
     async def metadata() -> Dict[str, str]:
         return {
-            "name": "code_review_triage_env",
-            "description": "Production-style code review and bug triage simulator.",
+            "name": "autonomous_traffic_control_env",
+            "description": (
+                "Multi-agent environment where AI systems manage a 4-way "
+                "intersection with emergency vehicle prioritization."
+            ),
             "version": "1.0.0",
         }
 
@@ -107,7 +113,7 @@ def _build_app() -> FastAPI:
     @app.websocket("/ws")
     async def ws_endpoint(websocket: WebSocket) -> None:
         await websocket.accept()
-        ws_env = CodeReviewTriageEnvironment()
+        ws_env = AutonomousTrafficControlEnvironment()
 
         try:
             while True:

@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "code-review-triage-openenv"
+name = "autonomous-traffic-control-openenv"
 version = "1.0.0"
-description = "Production-grade OpenEnv environment for code review and bug triage"
+description = "Production-grade OpenEnv environment for autonomous traffic control"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

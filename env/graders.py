@@ -63,11 +63,18 @@ def _summary_ratio(summary: str) -> float:
     ratio = 0.2
     if len(text) >= 40:
         ratio += 0.4
-    if "ship" in text or "merge" in text:
+    # Accept both legacy release wording and traffic-control go/no-go wording.
+    if (
+        "ship" in text
+        or "merge" in text
+        or "go/no-go" in text
+        or "no-go" in text
+        or "go decision" in text
+    ):
         ratio += 0.2
-    if "risk" in text:
+    if "risk" in text or "hazard" in text:
         ratio += 0.1
-    if "owner" in text or "handoff" in text:
+    if "owner" in text or "handoff" in text or "operator" in text:
         ratio += 0.1
     return min(1.0, ratio)
 

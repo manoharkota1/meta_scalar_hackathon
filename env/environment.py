@@ -18,8 +18,8 @@ from .reward import compute_step_reward
 from .tasks import load_tasks, ordered_task_ids
 
 
-class CodeReviewTriageEnvironment:
-    """Real-world code review and bug triage simulator for OpenEnv."""
+class AutonomousTrafficControlEnvironment:
+    """Real-world autonomous traffic control simulator for OpenEnv."""
 
     ACTION_COST = {
         ActionType.INSPECT_ALERT: 1,
@@ -60,8 +60,8 @@ class CodeReviewTriageEnvironment:
         )
 
         self._last_context = (
-            "Review queue initialized. Prioritize high-risk alerts and keep triage "
-            "notes concise for handoff."
+            "Control queue initialized. Prioritize emergency-impact alerts and keep "
+            "operator notes concise for handoff."
         )
         return self._build_observation(reward=0.0, done=False, last_error=None)
 
@@ -289,7 +289,7 @@ class CodeReviewTriageEnvironment:
 
         grade = grade_submission(self._task, self._state)
         self._state.final_score = grade.score
-        self._last_context = "Review submitted for deterministic grading."
+        self._last_context = "Control plan submitted for deterministic grading."
         return grade
 
     def _action_signature(self, action: ReviewAction) -> str:

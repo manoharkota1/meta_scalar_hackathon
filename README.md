@@ -1,25 +1,25 @@
 ---
 title: Meta Scalar Hackathon OpenEnv
-emoji: "🤖"
-colorFrom: blue
+emoji: "🚦"
+colorFrom: cyan
 colorTo: green
 sdk: docker
 app_port: 8000
 ---
 
-# Code Review Triage OpenEnv
+# Autonomous Traffic Control OpenEnv
 
-Production-grade OpenEnv environment that simulates a developer workflow for pull request review and bug triaging under constraints.
+Multi-agent environment where AI systems manage a 4-way intersection with emergency vehicle prioritization.
 
 ## Problem Description
-Modern engineering teams receive mixed-quality static analyzer alerts during PR review. Agents must inspect evidence, classify true bugs versus false positives, prioritize by impact and SLA, and submit actionable summaries.
+Urban intersections rely on AI-assisted control systems to coordinate signals, prevent gridlock, and prioritize ambulances, fire trucks, and police vehicles. Agents in this benchmark must inspect control evidence, classify true hazards versus false positives, prioritize high-impact incidents by deadline, and submit concise operational handoffs.
 
 This environment models that workflow with deterministic task data and deterministic grading.
 
 ## Real-World Motivation
-- Security and reliability alerts are noisy, but missing a real issue is costly.
-- Teams have limited review budgets and strict release timelines.
-- Good triage requires evidence gathering, prioritization, and concise handoff notes.
+- Traffic control alerts can be noisy, but missing a real hazard is costly.
+- Control rooms operate with limited intervention budget and strict timing constraints.
+- Reliable incident response requires evidence gathering, prioritization, and concise shift handoffs.
 
 ## Environment Interface
 Core environment implementation is in `env/environment.py` and exposes:
@@ -40,11 +40,11 @@ Server runtime is provided by `server/app.py` with OpenEnv-compatible HTTP and W
 ## Action Space
 `ReviewAction` (Pydantic model in `env/models.py`):
 - `action_type`: one of `inspect_alert`, `inspect_file`, `inspect_tests`, `triage_alert`, `add_note`, `submit_review`
-- `alert_id`: alert target for alert-scoped actions
-- `decision`: triage decision (`bug`, `false_positive`, `needs_info`)
+- `alert_id`: traffic-alert target for alert-scoped actions
+- `decision`: classifier decision (`bug`, `false_positive`, `needs_info`)
 - `severity`: required when decision is `bug` (`low`, `medium`, `high`, `critical`)
-- `note`: triage note text
-- `summary`: final submission summary
+- `note`: per-alert operator note
+- `summary`: final intersection-control summary
 
 ## Observation Space
 `ReviewObservation` includes:
@@ -66,20 +66,20 @@ Server runtime is provided by `server/app.py` with OpenEnv-compatible HTTP and W
 ## Task Suite
 Task definitions are in `env/tasks.py`.
 
-### Easy: `easy-pr-login-hotfix`
+### Easy: `easy-four-way-rush-hour`
 - 2 alerts
 - short horizon (max 8 steps)
-- objective: triage login hotfix PR safely before merge
+- objective: stabilize rush-hour timing and protect an inbound ambulance corridor
 
-### Medium: `medium-pr-billing-worker`
+### Medium: `medium-downtown-commuter-wave`
 - 3 alerts
-- multi-step reasoning across file/test evidence
-- objective: security + reliability triage with rollback awareness
+- multi-step reasoning across controller/test evidence
+- objective: preserve throughput while maintaining emergency preemption reliability
 
-### Hard: `hard-release-platform-gateway`
+### Hard: `hard-citywide-evacuation-incident`
 - 5 alerts
-- long horizon planning with SLA deadlines and budget pressure
-- objective: release-candidate triage with security, privacy, and performance trade-offs
+- long horizon planning with deadline and budget pressure
+- objective: run incident-mode signal control with safety, latency, and resilience trade-offs
 
 ## Deterministic Graders
 Grading logic is in `env/graders.py`.
@@ -149,11 +149,17 @@ Start server:
 uvicorn server.app:app --host 0.0.0.0 --port 8000
 ```
 
+Or with uv project runner:
+
+```bash
+uv run server
+```
+
 ### Docker
 
 ```bash
-docker build -t code-review-triage-env .
-docker run --rm -p 8000:8000 code-review-triage-env
+docker build -t autonomous-traffic-control-env .
+docker run --rm -p 8000:8000 autonomous-traffic-control-env
 ```
 
 ## Inference Runner
@@ -173,6 +179,13 @@ Run:
 python inference.py
 ```
 
+## Tests
+Run deterministic environment and API tests:
+
+```bash
+pytest -q
+```
+
 Recommended environment variables:
 
 ```bash
@@ -183,9 +196,9 @@ export HF_TOKEN="<your_token>"
 
 ## Baseline Scores
 Measured with deterministic policy in `inference.py`:
-- easy-pr-login-hotfix: 0.99
-- medium-pr-billing-worker: 0.94
-- hard-release-platform-gateway: 0.93
+- easy-four-way-rush-hour: 0.99
+- medium-downtown-commuter-wave: 0.94
+- hard-citywide-evacuation-incident: 0.93
 
 ## openenv.yaml fields
 Manifest includes:

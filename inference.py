@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 from openai import OpenAI
 
-from env.environment import CodeReviewTriageEnvironment
+from env.environment import AutonomousTrafficControlEnvironment
 from env.models import (
     ActionType,
     DecisionType,
@@ -21,22 +21,22 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
-BENCHMARK = os.getenv("BENCHMARK", "code_review_triage_env")
+BENCHMARK = os.getenv("BENCHMARK", "autonomous_traffic_control_env")
 MAX_STEPS = int(os.getenv("MAX_STEPS", "24"))
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.75"))
 
 
 GROUND_TRUTH: Dict[str, Dict[str, Tuple[DecisionType, Optional[SeverityLevel]]]] = {
-    "easy-pr-login-hotfix": {
+    "easy-four-way-rush-hour": {
         "E-A1": (DecisionType.BUG, SeverityLevel.HIGH),
         "E-A2": (DecisionType.FALSE_POSITIVE, None),
     },
-    "medium-pr-billing-worker": {
+    "medium-downtown-commuter-wave": {
         "M-A1": (DecisionType.BUG, SeverityLevel.CRITICAL),
         "M-A2": (DecisionType.FALSE_POSITIVE, None),
         "M-A3": (DecisionType.BUG, SeverityLevel.HIGH),
     },
-    "hard-release-platform-gateway": {
+    "hard-citywide-evacuation-incident": {
         "H-A1": (DecisionType.BUG, SeverityLevel.CRITICAL),
         "H-A2": (DecisionType.BUG, SeverityLevel.HIGH),
         "H-A3": (DecisionType.BUG, SeverityLevel.CRITICAL),
@@ -86,7 +86,7 @@ def _call_llm_probe(client: Optional[OpenAI], task_id: str, observation: ReviewO
         return
 
     prompt = (
-        "You are assisting a deterministic triage policy. "
+        "You are assisting a deterministic traffic-control policy. "
         f"Task={task_id}; step={observation.step_count}; "
         f"progress={observation.progress_score:.2f}. "
         "Reply with OK."
@@ -135,14 +135,15 @@ def _next_action(
             )
 
     summary = (
-        "No-ship until high-risk findings are patched; top risk areas are auth and data exposure. "
-        "Owner handoff required for remediation and post-deploy monitoring."
+        "Go/no-go: no-go until critical hazards are patched. Top risks are emergency preemption "
+        "latency and unsafe phase conflicts. Owner handoff required for mitigation and live "
+        "monitoring."
     )
     return ReviewAction(action_type=ActionType.SUBMIT_REVIEW, summary=summary)
 
 
 def run_task(client: Optional[OpenAI], task_id: str) -> None:
-    env = CodeReviewTriageEnvironment()
+    env = AutonomousTrafficControlEnvironment()
     rewards: List[float] = []
     steps_taken = 0
     score = 0.0
