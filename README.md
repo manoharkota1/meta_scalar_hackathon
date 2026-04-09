@@ -1,7 +1,7 @@
 ---
 title: Meta Scalar Hackathon OpenEnv
 emoji: "🚦"
-colorFrom: cyan
+colorFrom: blue
 colorTo: green
 sdk: docker
 app_port: 8000
