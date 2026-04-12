@@ -17,65 +17,65 @@ def _easy_task() -> TaskDefinition:
         task_id="easy-four-way-rush-hour",
         difficulty=DifficultyLevel.EASY,
         objective=(
-            "Coordinate a 4-way suburban intersection during rush hour while "
-            "ensuring ambulance priority through the westbound corridor."
+            "Keep a suburban 4-way junction stable during rush hour while "
+            "clearing a westbound ambulance path."
         ),
         max_steps=8,
         review_budget=10,
         submission_requirements=[
-            "Triaging every alert is mandatory.",
-            "At least one note should mention emergency response impact.",
-            "Final summary must mention intersection safety readiness.",
+            "Every alert must receive a decision.",
+            "Include at least one note about emergency response delay impact.",
+            "Final summary should state whether automatic control is safe to continue.",
         ],
         alerts=[
             AlertSpec(
                 alert_id="E-A1",
-                title="Emergency vehicle preemption ignored in westbound phase selector",
+                title="Westbound green logic skips ambulance preemption check",
                 file_path="traffic/intersection_controller.py",
                 tool_priority=5,
-                tool_signal="Safety analyzer: ev-preemption-missed",
+                tool_signal="Safety check: preemption_not_applied",
                 alert_context=(
                     "if westbound_queue > threshold: grant_green('westbound')"
                 ),
                 file_context=(
-                    "Branch grants normal queue optimization but does not check "
-                    "ambulance beacon state before setting phase."
+                    "Queue optimization path sets westbound green first and only "
+                    "later inspects emergency beacons."
                 ),
                 test_context=(
-                    "No regression test covers simultaneous heavy queue and "
-                    "active emergency beacon."
+                    "No test covers the combined case of heavy queue pressure and "
+                    "active ambulance beacon."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE],
                 expected_decision=DecisionType.BUG,
                 expected_severity=SeverityLevel.HIGH,
                 sla_deadline_step=4,
                 remediation_hint=(
-                    "Check emergency beacon before normal queue logic and enforce "
-                    "preemption hold window for westbound ambulance passage."
+                    "Evaluate emergency state before queue heuristics and enforce a "
+                    "minimum preemption hold interval."
                 ),
             ),
             AlertSpec(
                 alert_id="E-A2",
-                title="Pedestrian wait starvation warning appears under simulation jitter",
+                title="Pedestrian starvation warning appears only in replay jitter mode",
                 file_path="tests/test_pedestrian_cycle.py",
                 tool_priority=2,
-                tool_signal="Telemetry lint: starvation-threshold",
+                tool_signal="Telemetry check: ped_wait_threshold",
                 alert_context="assert ped_wait_s < 45",
                 file_context=(
-                    "Warning originates from replay mode where virtual clock step "
-                    "drift inflates measured wait time."
+                    "Replay mode can stretch virtual clock ticks, inflating computed "
+                    "wait time in the assertion path."
                 ),
                 test_context=(
-                    "Simulation harness applies deterministic jitter; production "
-                    "controller caps pedestrian wait correctly."
+                    "Production controller keeps pedestrian wait bounded; this warning "
+                    "shows up under synthetic jitter only."
                 ),
                 required_views=[ViewType.ALERT, ViewType.TESTS],
                 expected_decision=DecisionType.FALSE_POSITIVE,
                 expected_severity=None,
                 sla_deadline_step=None,
                 remediation_hint=(
-                    "Keep as false positive and document simulation jitter behavior "
-                    "near the assertion."
+                    "Mark as false positive and document replay-mode timing drift near "
+                    "the test assertion."
                 ),
             ),
         ],
@@ -87,87 +87,87 @@ def _medium_task() -> TaskDefinition:
         task_id="medium-downtown-commuter-wave",
         difficulty=DifficultyLevel.MEDIUM,
         objective=(
-            "Manage downtown commuter-wave timing with mixed safety and reliability "
-            "alerts while preserving emergency corridor responsiveness."
+            "Handle downtown commuter surge with mixed safety/reliability findings "
+            "while keeping emergency corridors responsive."
         ),
         max_steps=14,
         review_budget=16,
         submission_requirements=[
-            "All alerts must receive decision plus severity when applicable.",
-            "Critical or high findings require concrete remediation notes.",
-            "Summary must include fallback signal plan and monitoring strategy.",
+            "Decide all alerts, including severity for true defects.",
+            "High or critical defects need concrete remediation notes.",
+            "Summary must include fallback timing mode and monitoring plan.",
         ],
         alerts=[
             AlertSpec(
                 alert_id="M-A1",
-                title="Conflicting green phases can be emitted on stale clock window",
+                title="Stale sync window can emit conflicting green phases",
                 file_path="traffic/phase_scheduler.py",
                 tool_priority=5,
-                tool_signal="Safety rule: conflicting-green-window",
+                tool_signal="Safety rule: conflicting_green_phase",
                 alert_context="if now_ms - last_sync_ms > 2000: push_cached_phase_pair()",
                 file_context=(
-                    "Cached pair may contain north-south and east-west green phases "
-                    "when sync lag exceeds threshold."
+                    "When sync is stale, cached output may contain both north-south "
+                    "and east-west green simultaneously."
                 ),
                 test_context=(
-                    "Current tests do not include stale clock injection combined with "
-                    "phase reconciliation."
+                    "Tests do not combine stale-clock injection with reconciliation "
+                    "logic in the same case."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE],
                 expected_decision=DecisionType.BUG,
                 expected_severity=SeverityLevel.CRITICAL,
                 sla_deadline_step=6,
                 remediation_hint=(
-                    "Invalidate cached phase pair on stale sync and force all-red "
-                    "barrier before selecting a single direction."
+                    "Invalidate stale cached pairs and force all-red clearance before "
+                    "activating one direction."
                 ),
             ),
             AlertSpec(
                 alert_id="M-A2",
-                title="Possible null sensor access in lane demand estimator",
+                title="Possible null read in lane demand estimator",
                 file_path="traffic/demand_estimator.py",
                 tool_priority=3,
                 tool_signal="Pyright: Optional access",
                 alert_context="sensor_snapshot['northbound'].queue_length",
                 file_context=(
-                    "Code path follows a guard that substitutes fallback queue values "
-                    "when a sensor packet is missing."
+                    "Estimator applies a guard and fallback queue value whenever the "
+                    "northbound packet is absent."
                 ),
                 test_context=(
-                    "Property tests include missing northbound packets and estimator "
-                    "returns safe defaults."
+                    "Property tests include missing northbound payloads and confirm "
+                    "safe defaults."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE, ViewType.TESTS],
                 expected_decision=DecisionType.FALSE_POSITIVE,
                 expected_severity=None,
                 sla_deadline_step=None,
                 remediation_hint=(
-                    "Document guard behavior and add narrow inline suppression to avoid "
-                    "future confusion."
+                    "Document the fallback guard and add narrow inline suppression for "
+                    "this line only."
                 ),
             ),
             AlertSpec(
                 alert_id="M-A3",
-                title="No retry cap for upstream reroute advisory service",
+                title="Reroute advisory call has no retry cap",
                 file_path="traffic/reroute_orchestrator.py",
                 tool_priority=4,
-                tool_signal="Reliability rule: unbounded-retry",
+                tool_signal="Reliability rule: infinite_retry",
                 alert_context="while True: advisory = route_hub.fetch_override(...)",
                 file_context=(
-                    "Retry loop can block preemption worker when route hub returns "
+                    "Worker can stay stuck in retry loop if route hub keeps returning "
                     "transient 502 responses."
                 ),
                 test_context=(
-                    "Fault-injection tests show emergency command lag spikes during "
-                    "route hub outages."
+                    "Fault-injection run shows emergency command lag spikes when the "
+                    "route hub is unavailable."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE, ViewType.TESTS],
                 expected_decision=DecisionType.BUG,
                 expected_severity=SeverityLevel.HIGH,
                 sla_deadline_step=10,
                 remediation_hint=(
-                    "Add bounded retries with exponential backoff and fail over to "
-                    "local timing plan after max attempts."
+                    "Set max retry count, keep exponential backoff, and fail over to "
+                    "local timing plan when attempts are exhausted."
                 ),
             ),
         ],
@@ -179,30 +179,30 @@ def _hard_task() -> TaskDefinition:
         task_id="hard-citywide-evacuation-incident",
         difficulty=DifficultyLevel.HARD,
         objective=(
-            "Run incident-mode control for a city-center intersection during "
-            "evacuation traffic with strict emergency-priority SLAs."
+            "Operate a city-center junction in evacuation mode under strict "
+            "emergency-priority deadlines."
         ),
         max_steps=20,
         review_budget=18,
         submission_requirements=[
-            "All alerts must be triaged.",
-            "Critical alerts should be triaged before their SLA deadlines.",
-            "Summary must include: go/no-go signal plan, top two risks, and owner handoff.",
+            "Resolve every alert.",
+            "Resolve critical alerts before deadline where possible.",
+            "Summary must include go/no-go, top two risks, and owner handoff.",
         ],
         alerts=[
             AlertSpec(
                 alert_id="H-A1",
-                title="Emergency preemption command delayed by batch dispatcher",
+                title="Batch dispatcher delays emergency preemption command",
                 file_path="traffic/preemption_dispatch.py",
                 tool_priority=5,
-                tool_signal="Internal safety scanner: delayed-preemption",
+                tool_signal="Safety scanner: preemption_dispatch_delay",
                 alert_context="flush_every_s = 15; dispatch_buffer.append(command)",
                 file_context=(
-                    "Batching adds up to 15 seconds before siren-triggered phase "
-                    "change is sent to hardware."
+                    "Batch path can delay siren-triggered phase changes by up to "
+                    "15 seconds before hardware dispatch."
                 ),
                 test_context=(
-                    "No integration test validates sub-second dispatch latency for "
+                    "There is no integration test asserting sub-second dispatch for "
                     "ambulance preemption commands."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE, ViewType.TESTS],
@@ -210,101 +210,101 @@ def _hard_task() -> TaskDefinition:
                 expected_severity=SeverityLevel.CRITICAL,
                 sla_deadline_step=6,
                 remediation_hint=(
-                    "Bypass batching for emergency commands and enforce immediate "
-                    "dispatch path with latency alarms."
+                    "Bypass batching for emergency commands and attach latency alarms "
+                    "to immediate dispatch path."
                 ),
             ),
             AlertSpec(
                 alert_id="H-A2",
-                title="Vehicle identifiers exposed in incident telemetry logs",
+                title="Incident telemetry logs expose direct vehicle identifiers",
                 file_path="traffic/incident_logging.py",
                 tool_priority=4,
-                tool_signal="Privacy detector: plate+phone exposure",
+                tool_signal="Privacy detector: direct_identifier_leak",
                 alert_context="logger.info({'plate': vehicle.plate, 'phone': owner.phone})",
                 file_context=(
-                    "Telemetry middleware emits direct vehicle and owner identifiers "
-                    "before redaction."
+                    "Logging middleware writes plate and owner contact fields before "
+                    "redaction rules run."
                 ),
                 test_context=(
-                    "Snapshot tests assert key presence but do not verify redaction."
+                    "Snapshot tests only check key existence and miss redaction checks."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE],
                 expected_decision=DecisionType.BUG,
                 expected_severity=SeverityLevel.HIGH,
                 sla_deadline_step=12,
                 remediation_hint=(
-                    "Hash or drop direct identifiers and add regression checks for "
+                    "Drop or hash direct identifiers and add regression assertions for "
                     "sanitized telemetry payloads."
                 ),
             ),
             AlertSpec(
                 alert_id="H-A3",
-                title="Potential path traversal in timing-plan import endpoint",
+                title="Timing-plan import endpoint accepts path traversal payloads",
                 file_path="traffic/plan_import_service.py",
                 tool_priority=5,
                 tool_signal="Semgrep: path-traversal",
                 alert_context="open(f'/plans/{request.filename}', 'wb')",
                 file_context=(
-                    "Filename is accepted from operator input without normalization or "
-                    "allow-listing."
+                    "Operator-supplied filename is written directly without normalization "
+                    "or allow-list checks."
                 ),
                 test_context=(
-                    "No tests attempt '../../' payloads in timing-plan filename."
+                    "No tests attempt ../../ traversal in timing-plan filenames."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE],
                 expected_decision=DecisionType.BUG,
                 expected_severity=SeverityLevel.CRITICAL,
                 sla_deadline_step=9,
                 remediation_hint=(
-                    "Validate filename against strict regex and resolve paths under a "
-                    "safe plan directory root."
+                    "Validate filename with strict allow-list and resolve writes under "
+                    "a fixed plan root directory."
                 ),
             ),
             AlertSpec(
                 alert_id="H-A4",
-                title="Static analyzer flags deadlock risk in signal worker locks",
+                title="Static analyzer flags deadlock risk in worker lock order",
                 file_path="traffic/signal_worker_pool.py",
                 tool_priority=3,
                 tool_signal="Concurrency lint: lock-order",
                 alert_context="with pool_lock: ... with stats_lock:",
                 file_context=(
-                    "Code acquires locks in a consistent global order across controller "
-                    "call sites."
+                    "Lock acquisition order is consistent across call sites in current "
+                    "implementation."
                 ),
                 test_context=(
-                    "Stress tests run 10k iterations with no deadlock and lock-order "
-                    "assertions enabled."
+                    "Stress suite runs 10k iterations with lock-order assertions and no "
+                    "deadlock observed."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE, ViewType.TESTS],
                 expected_decision=DecisionType.FALSE_POSITIVE,
                 expected_severity=None,
                 sla_deadline_step=None,
                 remediation_hint=(
-                    "Retain existing lock-order contract and document it near pool_lock "
-                    "for future maintainers."
+                    "Keep the lock-order contract and document it near pool_lock for "
+                    "future edits."
                 ),
             ),
             AlertSpec(
                 alert_id="H-A5",
-                title="Quadratic loop in adaptive phase merge",
+                title="Adaptive phase merge uses quadratic loop",
                 file_path="traffic/phase_plan_merge.py",
                 tool_priority=4,
                 tool_signal="Perf rule: O(n^2)-merge",
                 alert_context="for lhs in plans: for rhs in plans:",
                 file_context=(
-                    "Large incident plans can contain 3k+ phase segments during "
-                    "evacuation-mode sync."
+                    "Large evacuation plans can exceed 3k phase segments during sync "
+                    "windows."
                 ),
                 test_context=(
-                    "Benchmark CI indicates p95 merge latency exceeds control SLO for "
-                    "large evacuation plans."
+                    "Benchmark pipeline shows p95 merge time exceeding SLO on large "
+                    "evacuation plans."
                 ),
                 required_views=[ViewType.ALERT, ViewType.FILE, ViewType.TESTS],
                 expected_decision=DecisionType.BUG,
                 expected_severity=SeverityLevel.MEDIUM,
                 sla_deadline_step=15,
                 remediation_hint=(
-                    "Replace nested scan with hash-join style merge keyed by phase id."
+                    "Replace nested iteration with hash-indexed merge keyed by phase id."
                 ),
             ),
         ],
